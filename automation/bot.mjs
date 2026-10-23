@@ -132,7 +132,7 @@ export async function runBot({ github, event, eventName, ask = askModel }) {
     if (operation === 'review' && !event.issue.pull_request) return;
   } else if (eventName === 'issues') {
     const issue = await github.get(`/issues/${number}`);
-    if (event.action === 'closed') {
+    if (issue.state === 'closed') {
       await github.replaceLabels(number, 'status:', ['status:done']);
       return;
     }
