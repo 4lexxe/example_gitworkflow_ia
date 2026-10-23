@@ -1,5 +1,5 @@
 /** Importes en centavos: evita errores de redondeo con dinero. */
-export function calculateTotal(unitPriceCents, quantity, discountPercent = 0) {
+export function calculateTotal(unitPriceCents, quantity, discountPercent = 0, shippingCents = 0) {
   if (!Number.isSafeInteger(unitPriceCents) || unitPriceCents < 0) {
     throw new RangeError('El precio debe ser un entero no negativo en centavos.');
   }
@@ -11,5 +11,5 @@ export function calculateTotal(unitPriceCents, quantity, discountPercent = 0) {
   }
   const subtotal = unitPriceCents * quantity;
   if (!Number.isSafeInteger(subtotal)) throw new RangeError('El subtotal es demasiado grande.');
-  return Math.round(subtotal * (1 - discountPercent / 100));
+  return Math.round(subtotal * (1 - discountPercent / 100)) + shippingCents;
 }
