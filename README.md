@@ -4,7 +4,7 @@
 
 Un laboratorio para recorrer **tarea → planificación IA → implementación → PR → revisión IA → pruebas → merge**.
 
-**[Abrir Kanban](https://4lexxe.github.io/example_gitworkflow_ia/)** ·
+**[Abrir Kanban en GitHub Projects](https://github.com/users/4lexxe/projects/2)** ·
 **[Crear tarea](https://github.com/4lexxe/example_gitworkflow_ia/issues/new?template=tarea.yml)** ·
 **[Ver ejecuciones](https://github.com/4lexxe/example_gitworkflow_ia/actions)** ·
 **[Probar paso a paso](docs/PRUEBAS.md)**
@@ -23,7 +23,7 @@ CI pasa, pero la revisión IA bloquea ese PR hasta corregirlo.
 | Desarrollador humano o asistido por IA | Implementar en una rama y abrir el PR con `Closes #N`. |
 | Revisor IA | Analizar los diffs y las tareas vinculadas; publicar problemas y sugerencias. |
 | GitHub Actions / CI | Ejecutar las pruebas y comprobaciones reproducibles. |
-| Kanban | Mostrar estados reales a partir de las etiquetas de GitHub. |
+| GitHub Projects | Mostrar las tarjetas en el tablero nativo, sincronizadas con los estados del PM. |
 
 La IA usa **GitHub Copilot CLI**. Requiere que la cuenta tenga acceso a Copilot;
 si el token de Actions no está habilitado, se configura `COPILOT_GITHUB_TOKEN`.
@@ -55,16 +55,20 @@ el análisis de una contribución externa usando esos comandos.
 
 ## Kanban
 
-**Backlog → Listo para empezar → En curso → En revisión → Hecho.**
+**Backlog → Listo → En curso → En revisión → Hecho.**
 
-El tablero publicado en GitHub Pages consulta la API pública de GitHub y muestra
-issues y, opcionalmente, pull requests. No requiere instalar nada ni ingresar un
-token en el navegador. Se actualiza cada 90 segundos mientras está visible; también
-podés pulsar «Actualizar». Los estados se modifican en GitHub mediante comandos
-o etiquetas, y cada tarjeta abre su issue/PR.
+El tablero usa la plantilla Kanban que integra **GitHub Projects**. Está vinculado
+al repositorio e incluye issues y pull requests reales. Las automatizaciones
+nativas importan nuevos elementos y registran los cierres; Actions sincroniza los
+movimientos decididos por el PM mediante `PROJECT_TOKEN`.
 
-Es un tablero propio de este repositorio. **GitHub Projects** es una integración
-adicional que requiere un permiso de cuenta independiente; ver [ACTIVACION.md](docs/ACTIVACION.md).
+Los comandos como `/pm status doing` se escriben en **un comentario separado** de
+la issue. Escribirlos dentro de su descripción o del formulario no ejecuta el comando.
+También podés arrastrar tarjetas en Projects. Los comandos y los eventos posteriores
+de la automatización vuelven a aplicar el estado registrado en las etiquetas.
+
+Si falta el permiso de Projects, la ejecución lo informa y no declara una
+sincronización exitosa. Ver [ACTIVACION.md](docs/ACTIVACION.md).
 
 ## Comprobar localmente
 
@@ -88,7 +92,8 @@ existentes y cumplir los nuevos criterios de aceptación.
 - `.github/prompts/reviewer.md`: criterios de revisión.
 - `automation/bot.mjs`: coordinación y cambios de estado.
 - `automation/policy.mjs`: comandos, etiquetas y validación de respuestas.
-- `.github/workflows/`: CI, gestión IA y publicación del tablero.
+- `automation/projects.mjs`: sincronización con el tablero nativo.
+- `.github/workflows/`: CI, gestión IA y redirección del enlace anterior al Project.
 
 El revisor trabaja con hasta 40 archivos y 28 000 caracteres de diffs. Si falta
 un diff o se supera el alcance, lo informa como cobertura parcial. Las pruebas

@@ -44,16 +44,30 @@ ejecución correspondiente.
 GitHub Models fue retirado el 30 de julio de 2026; este proyecto no depende de
 esa API. [Aviso oficial](https://docs.github.com/en/github-models).
 
-## 3. Publicación del Kanban
+## 3. Kanban nativo de GitHub Projects
 
-En Settings → Pages, la fuente debe ser **GitHub Actions**. El workflow
-«Publicar Kanban» despliega `docs/`. La dirección es:
+El tablero está en [Workflow Lab IA](https://github.com/users/4lexxe/projects/2).
+Usa la plantilla Kanban de GitHub, con cinco estados y las issues/PRs del repo.
+El enlace anterior de Pages redirige al Project nativo.
 
-https://4lexxe.github.io/example_gitworkflow_ia/
+La variable `PROJECT_NUMBER` vale `2`. Para que Actions sincronice los movimientos:
 
-Las tarjetas se leen en tiempo real desde issues y PRs públicos. Los cambios de
-estado no requieren otro despliegue. Si GitHub limita las consultas anónimas,
-el tablero lo informa y mantiene la última vista; esperá antes de actualizar.
+1. Creá un **personal access token clásico** con permiso **project** y vencimiento.
+2. Guardalo como `PROJECT_TOKEN` en
+   [los secretos de Actions](https://github.com/4lexxe/example_gitworkflow_ia/settings/secrets/actions).
+3. Ejecutá la sincronización inicial:
+
+```powershell
+gh workflow run project-manager.yml --repo 4lexxe/example_gitworkflow_ia -f operation=sync-project
+```
+
+Este repositorio es público: el token solo necesita `project`. Para un repositorio
+privado se requiere además `repo`. GitHub todavía no admite tokens fine-grained
+para Projects de cuentas personales. [Limitaciones oficiales](https://docs.github.com/en/authentication/keeping-your-personal-access-tokens-and-other-credentials-secure/managing-your-personal-access-tokens).
+
+Nunca pegues el token en una issue, PR o chat. El código de análisis no recibe
+`PROJECT_TOKEN`; se usa exclusivamente al publicar los movimientos del tablero.
+`GITHUB_TOKEN` está limitado al repositorio y no accede a Projects.
 
 ## 4. Protección de main
 
@@ -68,23 +82,18 @@ al modelo. Un error de autenticación, cobertura parcial o hallazgo alto impide
 el merge. En contribuciones externas, un mantenedor pide la revisión con
 `/pm review` antes de fusionar. No hay aprobaciones IA ni merges automáticos.
 
-## 5. GitHub Projects opcional
+## 5. Reutilizar la configuración en otra instalación
 
-El tablero incluido ya cumple la función de Kanban. Para usar además Projects
-nativo se requiere un token con acceso a Projects; `GITHUB_TOKEN` solo tiene
-alcance de repositorio y no puede administrarlo.
-
-El script `scripts/setup-project.mjs` crea y vincula un proyecto, configura cinco
-estados y agrega las issues existentes. Requiere autorizar `project` en tu sesión:
+`scripts/setup-project.mjs` reutiliza un Project existente con el mismo nombre o
+crea uno nuevo. Conserva las opciones de estado y sus IDs cuando el tablero ya
+tiene los cinco estados de la plantilla Kanban. Requiere `project` en tu sesión:
 
 ```powershell
 gh auth refresh -s project
 node scripts/setup-project.mjs
 ```
 
-Para sincronizarlo desde Actions, guardá un PAT de Projects con alcance `project`
-y `repo` como `PROJECT_TOKEN`. El script configura `PROJECT_NUMBER` como variable
-del repositorio y la automatización sincroniza el estado tras cada movimiento.
-El token de Projects nunca se entrega al modelo.
+El script configura `PROJECT_NUMBER` y `PROJECT_URL`, vincula el repo y agrega los
+elementos existentes. La sincronización permanente usa el secreto descrito arriba.
 
 Referencia: [Automatizar Projects con Actions](https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/automating-projects-using-actions).

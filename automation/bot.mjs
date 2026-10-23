@@ -118,6 +118,10 @@ export async function runBot({ github, event, eventName, ask = askModel }) {
       }
       return;
     }
+    if (operation === 'sync-project') {
+      for (const item of await github.all('/issues?state=all')) github.changedStatuses.add(item.number);
+      return;
+    }
   } else if (eventName === 'issue_comment') {
     if (!TRUSTED.includes(event.comment?.author_association)) return;
     const parsed = command(event.comment?.body);
@@ -184,10 +188,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.error(error.message);
     process.exitCode = 1;
   } finally {
-    if (github && process.env.PROJECT_TOKEN && process.env.PROJECT_NUMBER) {
+    if (github && process.env.PROJECT_NUMBER && github.changedStatuses.size) {
       try {
+        if (!process.env.PROJECT_TOKEN) {
+          throw new Error('Falta PROJECT_TOKEN en los secretos de Actions: el PM respondió, pero GitHub Projects todavía no está sincronizado.');
+        }
         const projects = new ProjectSync(new GitHub({ token: process.env.PROJECT_TOKEN }), process.env.PROJECT_NUMBER);
         for (const number of github.changedStatuses) await projects.sync(await github.get(`/issues/${number}`));
+        console.log(`GitHub Projects sincronizado: ${github.changedStatuses.size} elementos. ${projects.project.url}`);
       } catch (error) {
         console.error(error.message);
         process.exitCode = 1;
