@@ -1,0 +1,28 @@
+name: Tarea para el Project Manager IA
+description: Pedí una funcionalidad o corrección y recibí un plan de la IA.
+title: '[Tarea] '
+body:
+  - type: markdown
+    attributes:
+      value: 'La IA propondrá un plan y prioridad. Explicá qué resultado necesitás. No incluyas claves ni datos privados.'
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objetivo
+      description: Qué necesitás y para quién.
+      placeholder: Quiero que calculateTotal permita sumar un costo de envío en centavos.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de aceptación
+      description: Ejemplos concretos para saber que funciona.
+      placeholder: 'El envío debe ser un entero no negativo. Rechazar NaN, Infinity y texto.'
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto y límites
+      placeholder: Mantener los llamados actuales sin cambios. Agregar pruebas.

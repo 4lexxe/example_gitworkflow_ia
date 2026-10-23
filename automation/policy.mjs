@@ -1,0 +1,82 @@
+export const STATUSES = ['backlog', 'ready', 'doing', 'review', 'done'];
+export const TRUSTED = ['OWNER', 'MEMBER', 'COLLABORATOR'];
+export const LABELS = {
+  'status:backlog': ['64748b', 'Pendiente de análisis o planificación'],
+  'status:ready': ['2563eb', 'Plan disponible para comenzar'],
+  'status:doing': ['d97706', 'Implementación en curso'],
+  'status:review': ['7c3aed', 'Pull request abierta para revisión'],
+  'status:done': ['059669', 'Issue o pull request cerrada'],
+  'type:bug': ['dc2626', 'Corrección de un error'],
+  'type:feature': ['0891b2', 'Nueva funcionalidad'],
+  'type:chore': ['64748b', 'Mantenimiento'],
+  'type:docs': ['0284c7', 'Documentación'],
+  'priority:high': ['dc2626', 'Prioridad alta sugerida por el PM'],
+  'priority:medium': ['d97706', 'Prioridad media sugerida por el PM'],
+  'priority:low': ['059669', 'Prioridad baja sugerida por el PM'],
+  'ai:planned': ['0d9488', 'La IA publicó un plan'],
+  'ai:reviewed': ['0d9488', 'La IA revisó el último commit'],
+  'ai:changes-requested': ['dc2626', 'La IA encontró problemas de severidad alta'],
+  'ai:unavailable': ['b91c1c', 'No se pudo completar la consulta a la IA'],
+  'blocked': ['b91c1c', 'Requiere intervención humana'],
+  'demo': ['d946ef', 'Ejemplo para comprobar el flujo']
+};
+
+export function command(body = '') {
+  const match = body.trim().match(/^\/pm\s+(plan|review|status(?:\s+(?:backlog|ready|doing|review))?)\s*$/i);
+  return match ? match[1].toLowerCase().split(/\s+/) : null;
+}
+
+export function text(value, limit = 3000) {
+  if (typeof value !== 'string' || !value.trim()) throw new Error('La IA devolvió texto vacío o inválido.');
+  return value.trim().slice(0, limit);
+}
+
+function list(value, limit = 10) {
+  if (!Array.isArray(value) || value.length > limit) throw new Error('La IA devolvió una lista inválida.');
+  return value.map(item => text(item, 1600));
+}
+
+export function validatePlan(value) {
+  if (!['bug', 'feature', 'chore', 'docs'].includes(value?.kind)) throw new Error('Tipo de tarea inválido.');
+  if (!['high', 'medium', 'low'].includes(value.priority)) throw new Error('Prioridad inválida.');
+  return {
+    summary: text(value.summary), kind: value.kind, priority: value.priority,
+    acceptanceCriteria: list(value.acceptanceCriteria), tasks: list(value.tasks),
+    questions: list(value.questions)
+  };
+}
+
+export function validateReview(value, files) {
+  if (!Array.isArray(value?.findings) || value.findings.length > 12) throw new Error('Hallazgos inválidos.');
+  const paths = new Set(files.map(file => file.filename));
+  return {
+    summary: text(value.summary), tests: list(value.tests),
+    findings: value.findings.map(item => {
+      if (!['high', 'medium', 'low'].includes(item.severity)) throw new Error('Severidad inválida.');
+      if (!paths.has(item.path) || !Number.isInteger(item.line) || item.line < 1) {
+        throw new Error('El hallazgo referencia un archivo o línea inválidos.');
+      }
+      return { severity: item.severity, path: item.path, line: item.line,
+        problem: text(item.problem), suggestion: text(item.suggestion) };
+    })
+  };
+}
+
+/** Solo referencias explícitas de cierre del repositorio actual. */
+export function closingNumbers(body = '', repo) {
+  const escaped = repo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const matcher = new RegExp(`\\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\\s+(?:${escaped})?#(\\d+)\\b`, 'gi');
+  return [...new Set([...body.matchAll(matcher)].map(match => Number(match[1])))];
+}
+
+export function statusFor(item) {
+  if (item.state === 'closed') return 'done';
+  const names = item.labels.map(label => typeof label === 'string' ? label : label.name);
+  return STATUSES.find(status => names.includes(`status:${status}`)) || 'backlog';
+}
+
+/** Impide menciones masivas y HTML emitidos por el modelo. */
+export function markdown(value) {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/@/g, '@\u200b');
+}
