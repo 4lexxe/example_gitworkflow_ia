@@ -77,6 +77,5 @@ export function statusFor(item) {
 
 /** Impide menciones masivas y HTML emitidos por el modelo. */
 export function markdown(value) {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/@/g, '@\u200b');
+  return value.replace(/</g, '&lt;').replace(/@/g, '@\u200b');
 }
