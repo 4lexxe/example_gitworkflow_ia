@@ -9,6 +9,11 @@ Un laboratorio para recorrer **tarea → planificación IA → implementación �
 **[Ver ejecuciones](https://github.com/4lexxe/example_gitworkflow_ia/actions)** ·
 **[Probar paso a paso](docs/PRUEBAS.md)**
 
+**Prueba real:** [tarea planificada por IA #1](https://github.com/4lexxe/example_gitworkflow_ia/issues/1)
+y [PR #2 con dos defectos detectados](https://github.com/4lexxe/example_gitworkflow_ia/pull/2).
+CI pasa, pero la revisión IA bloquea ese PR hasta corregirlo.
+[Evidencia y alcance de verificación](docs/RESULTADOS.md).
+
 ## Quién hace qué
 
 | Responsable | Trabajo |

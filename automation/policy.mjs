@@ -75,8 +75,21 @@ export function statusFor(item) {
   return STATUSES.find(status => names.includes(`status:${status}`)) || 'backlog';
 }
 
-/** Impide menciones masivas y HTML emitidos por el modelo. */
+/** Escapa texto del modelo; preserva spans de código que GitHub renderiza literalmente. */
 export function markdown(value) {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/@/g, '@\u200b');
+  const escape = part => part.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/@/g, '@\u200b');
+  let output = '', position = 0;
+  const runs = [...value.matchAll(/`+/g)];
+  for (let index = 0; index < runs.length; index++) {
+    const opening = runs[index];
+    const closingIndex = runs.findIndex((run, candidate) => candidate > index && run[0].length === opening[0].length);
+    if (closingIndex < 0) break;
+    const closing = runs[closingIndex];
+    output += escape(value.slice(position, opening.index));
+    output += value.slice(opening.index, closing.index + closing[0].length);
+    position = closing.index + closing[0].length;
+    index = closingIndex;
+  }
+  return output + escape(value.slice(position));
 }
