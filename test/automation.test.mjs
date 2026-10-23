@@ -64,6 +64,11 @@ test('parsea JSON sin convertir texto arbitrario en un análisis exitoso', () =>
   assert.throws(() => parseJson('No estoy autenticado.'));
   assert.throws(() => parseJson('[]'));
   assert.match(markdown('<script>@everyone</script>'), /&lt;script&gt;@\u200beveryone/);
+  assert.equal(markdown('`value >= 0 && valid`'), '`value >= 0 && valid`');
+  assert.equal(markdown('&copy; &nbsp; &lt;b&gt;'), '&amp;copy; &amp;nbsp; &amp;lt;b&amp;gt;');
+  assert.equal(markdown('`<b>` <b>@x</b>'), '`<b>` &lt;b&gt;@\u200bx&lt;/b&gt;');
+  assert.equal(markdown('```js\nconst ok = x >= 0 && true;\n```'), '```js\nconst ok = x >= 0 && true;\n```');
+  assert.equal(markdown('`sin cierre <b>'), '`sin cierre &lt;b&gt;');
 });
 
 test('el PM publica criterios y mueve backlog a ready', async () => {
@@ -95,6 +100,21 @@ test('fallo de IA queda visible y el trabajo no se marca planificado', async () 
   assert.deepEqual(github.labels.get('1:ai:'), ['ai:unavailable']);
   assert.deepEqual(github.labels.get('1:status:'), ['status:backlog']);
   assert.match(github.comments[0].body, /No se publicó un análisis exitoso/);
+});
+
+test('una issue ya cerrada se sincroniza sin consumir IA por eventos anteriores', async () => {
+  const github = new MemoryGitHub(); github.issue.state = 'closed';
+  await runBot({ github, eventName: 'issues', event: { issue: issue(), action: 'opened' },
+    ask: () => { throw new Error('No debe consultar IA'); } });
+  assert.deepEqual(github.labels.get('1:status:'), ['status:done']);
+  assert.equal(github.comments.length, 0);
+});
+
+test('un PR en borrador no recibe una revisión prematura', async () => {
+  const github = new MemoryGitHub(); github.pull.draft = true;
+  await reviewPull(github, 2, () => { throw new Error('No debe consultar IA'); });
+  assert.equal(github.statuses.length, 0);
+  assert.equal(github.comments.length, 0);
 });
 
 test('hallazgos altos producen un estado fallido y quedan en el comentario', async () => {

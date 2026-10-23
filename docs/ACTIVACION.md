@@ -57,15 +57,16 @@ el tablero lo informa y mantiene la última vista; esperá antes de actualizar.
 
 ## 4. Protección de main
 
-La configuración inicial exige un PR y el check **Tests** antes del merge,
+La configuración verificada exige un PR y los checks **Tests** y **AI / review** antes del merge,
 descarta aprobaciones obsoletas e impide borrar o forzar pushes a main.
 En un repositorio de una sola persona, se permiten cero aprobaciones externas
 obligatorias para que puedas fusionar tu propio PR después de revisarlo.
 
 El estado **AI / review** muestra si la revisión terminó, falló o encontró
-problemas altos. Se deja informativo para que la falta de acceso a Copilot no
-impida activar el laboratorio. Cuando verifiques el acceso, podés agregarlo
-a los checks obligatorios en Settings → Branches.
+problemas altos. Se activó como obligatorio después de verificar el acceso real
+al modelo. Un error de autenticación, cobertura parcial o hallazgo alto impide
+el merge. En contribuciones externas, un mantenedor pide la revisión con
+`/pm review` antes de fusionar. No hay aprobaciones IA ni merges automáticos.
 
 ## 5. GitHub Projects opcional
 
