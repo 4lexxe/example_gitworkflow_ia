@@ -11,7 +11,7 @@ on:
       operation:
         description: Operación
         type: choice
-        options: [plan, review, sync, setup]
+        options: [plan, review, sync, sync-project, setup]
         required: true
       number:
         description: Número de issue/PR (vacío para setup)

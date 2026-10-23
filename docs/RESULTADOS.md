@@ -41,10 +41,10 @@ Copilot respondió desde Actions usando su token temporal: no se guardó ningún
 secreto nuevo de IA. La disponibilidad futura depende del acceso y los créditos
 de la cuenta Copilot.
 
-La integración opcional con GitHub Projects está implementada, pero **no fue
-activada ni verificada en vivo**: la sesión `gh` no tiene el permiso `project`.
-El Kanban publicado funciona con issues y etiquetas y no necesita ese permiso.
-Los pasos para habilitar Projects están en [ACTIVACION.md](ACTIVACION.md).
+El tablero actual es [GitHub Projects nativo](https://github.com/users/4lexxe/projects/2),
+creado con la plantilla Kanban e importación de las issues y PRs abiertas.
+La sincronización de movimientos de Actions requiere `PROJECT_TOKEN`; la guía
+explica su activación y cómo comprobarla. El enlace de Pages redirige al Project.
 
 La respuesta del modelo no es determinista. Revisá sus ejemplos y conclusiones;
 las pruebas y la revisión humana siguen formando parte del proceso.

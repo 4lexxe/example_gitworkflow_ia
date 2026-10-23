@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { GitHub } from '../automation/github.mjs';
-import { ProjectSync, PROJECT_STATUSES } from '../automation/projects.mjs';
+import { ProjectSync, PROJECT_STATUSES, statusOption } from '../automation/projects.mjs';
 
 // Se ejecuta localmente por el mantenedor. Nunca guarda ni imprime la credencial.
 const repo = '4lexxe/example_gitworkflow_ia';
@@ -27,13 +27,20 @@ try {
   }
   const project = new ProjectSync(api, number);
   await project.load();
-  const options = Object.values(PROJECT_STATUSES).map(([name, color]) => {
-    const current = project.field.options.find(option => option.name === name);
-    return { ...(current ? { id: current.id } : {}), name, color, description: `Estado ${name} del flujo del repositorio` };
-  });
-  await project.graphql(`mutation($field:ID!,$options:[ProjectV2SingleSelectFieldOptionInput!]!) {
-    updateProjectV2Field(input:{fieldId:$field,singleSelectOptions:$options}) { projectV2Field { ... on ProjectV2SingleSelectField { id } } }
-  }`, { field: project.field.id, options });
+  // Respetar los estados y sus IDs cuando se usó la plantilla Kanban de GitHub.
+  const complete = Object.keys(PROJECT_STATUSES).every(status => statusOption(project.field.options, status));
+  if (!complete) {
+    const used = new Set();
+    const options = Object.entries(PROJECT_STATUSES).map(([status, [name, color]]) => {
+      const current = statusOption(project.field.options, status);
+      if (current) used.add(current.id);
+      return { ...(current ? { id: current.id } : {}), name, color, description: `Estado ${name} del flujo del repositorio` };
+    });
+    options.push(...project.field.options.filter(option => !used.has(option.id)));
+    await project.graphql(`mutation($field:ID!,$options:[ProjectV2SingleSelectFieldOptionInput!]!) {
+      updateProjectV2Field(input:{fieldId:$field,singleSelectOptions:$options}) { projectV2Field { ... on ProjectV2SingleSelectField { id } } }
+    }`, { field: project.field.id, options });
+  }
   await project.graphql(`mutation($project:ID!,$repo:ID!) {
     linkProjectV2ToRepository(input:{projectId:$project,repositoryId:$repo}) { repository { id } }
   }`, { project: project.project.id, repo: result.data.repository.id });
@@ -46,8 +53,9 @@ try {
   await project.load();
   for (const item of await api.all('/issues?state=all')) await project.sync(item);
   gh('variable', 'set', 'PROJECT_NUMBER', '--repo', repo, '--body', String(number));
+  gh('variable', 'set', 'PROJECT_URL', '--repo', repo, '--body', project.project.url);
   console.log(`Proyecto listo: ${project.project.url}`);
-  console.log('Para sincronización automática, guardar PROJECT_TOKEN como secreto de Actions con permisos project y repo.');
+  console.log('Para sincronización automática, guardar PROJECT_TOKEN como secreto de Actions con permiso project (agregar repo solo para repositorios privados).');
 } catch (error) {
   console.error(error.message.startsWith('Command failed:') ? 'No se pudo leer la sesión de gh. Ejecutá gh auth status.' : error.message);
   process.exitCode = 1;

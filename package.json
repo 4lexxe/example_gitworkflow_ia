@@ -7,7 +7,7 @@
   "engines": { "node": ">=22" },
   "scripts": {
     "test": "node --test",
-    "check": "node --check automation/github.mjs && node --check automation/model.mjs && node --check automation/policy.mjs && node --check automation/bot.mjs && node --check automation/projects.mjs && node --check scripts/setup-project.mjs && node --check docs/board.mjs && node --check src/pricing.mjs",
+    "check": "node --check automation/github.mjs && node --check automation/model.mjs && node --check automation/policy.mjs && node --check automation/bot.mjs && node --check automation/projects.mjs && node --check scripts/setup-project.mjs && node --check src/pricing.mjs",
     "demo": "node examples/pricing.mjs"
   }
 }

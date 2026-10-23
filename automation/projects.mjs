@@ -5,6 +5,16 @@ export const PROJECT_STATUSES = {
   review: ['En revisión', 'PURPLE'], done: ['Hecho', 'GREEN']
 };
 
+export const PROJECT_STATUS_ALIASES = {
+  backlog: ['Backlog', 'Todo'], ready: ['Listo', 'Ready', 'Listo para empezar'],
+  doing: ['En curso', 'In progress'], review: ['En revisión', 'In review'],
+  done: ['Hecho', 'Done']
+};
+
+export function statusOption(options, status) {
+  return options.find(option => PROJECT_STATUS_ALIASES[status]?.some(name => name.toLowerCase() === option.name.toLowerCase()));
+}
+
 export class ProjectSync {
   constructor(github, number) {
     this.github = github;
@@ -19,7 +29,7 @@ export class ProjectSync {
   async load() {
     const data = await this.graphql(`query($owner:String!,$number:Int!) {
       user(login:$owner) { projectV2(number:$number) { id url fields(first:50) { nodes {
-        ... on ProjectV2SingleSelectField { id name options { id name } }
+        ... on ProjectV2SingleSelectField { id name options { id name color description } }
       } } } }
     }`, { owner: this.github.repo.split('/')[0], number: this.number });
     this.project = data.user?.projectV2;
@@ -28,8 +38,9 @@ export class ProjectSync {
   }
   async sync(item) {
     if (!this.project) await this.load();
-    const name = PROJECT_STATUSES[statusFor(item)][0];
-    const option = this.field.options.find(option => option.name === name);
+    const status = statusFor(item);
+    const name = PROJECT_STATUSES[status][0];
+    const option = statusOption(this.field.options, status);
     if (!option) throw new Error(`GitHub Projects: falta el estado ${name}; ejecutar setup-project.mjs.`);
     const added = await this.graphql(`mutation($project:ID!,$content:ID!) {
       addProjectV2ItemById(input:{projectId:$project,contentId:$content}) { item { id } }

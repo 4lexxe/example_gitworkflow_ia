@@ -1,5 +1,9 @@
 # Probar el flujo completo
 
+El tablero es [GitHub Projects nativo](https://github.com/users/4lexxe/projects/2).
+Los comandos `/pm ...` se publican como **comentario aparte**, después de crear la
+issue; los campos del formulario solo describen la tarea y no ejecutan comandos.
+
 ## Prueba A: comprobar al Project Manager
 
 1. Abrí [Nueva tarea](https://github.com/4lexxe/example_gitworkflow_ia/issues/new?template=tarea.yml).
