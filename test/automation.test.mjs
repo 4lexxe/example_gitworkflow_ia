@@ -63,8 +63,12 @@ test('parsea JSON sin convertir texto arbitrario en un análisis exitoso', () =>
   assert.deepEqual(parseJson('```json\n{"summary":"ok"}\n```'), { summary: 'ok' });
   assert.throws(() => parseJson('No estoy autenticado.'));
   assert.throws(() => parseJson('[]'));
-  assert.match(markdown('<script>@everyone</script>'), /&lt;script>@\u200beveryone/);
+  assert.match(markdown('<script>@everyone</script>'), /&lt;script&gt;@\u200beveryone/);
   assert.equal(markdown('`value >= 0 && valid`'), '`value >= 0 && valid`');
+  assert.equal(markdown('&copy; &nbsp; &lt;b&gt;'), '&amp;copy; &amp;nbsp; &amp;lt;b&amp;gt;');
+  assert.equal(markdown('`<b>` <b>@x</b>'), '`<b>` &lt;b&gt;@\u200bx&lt;/b&gt;');
+  assert.equal(markdown('```js\nconst ok = x >= 0 && true;\n```'), '```js\nconst ok = x >= 0 && true;\n```');
+  assert.equal(markdown('`sin cierre <b>'), '`sin cierre &lt;b&gt;');
 });
 
 test('el PM publica criterios y mueve backlog a ready', async () => {
